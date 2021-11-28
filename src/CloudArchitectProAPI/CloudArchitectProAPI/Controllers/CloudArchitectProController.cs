@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using CloudArchitectProAPI.CodeCloudClients;
+using System.Text.Json;
 using System.Web.Http;
 
 namespace CloudArchitectProAPI.Controllers
@@ -6,9 +7,10 @@ namespace CloudArchitectProAPI.Controllers
     public class CloudArchitectProController : ApiController
     {
         // GET api/cloudarchitectpro
-        public IEnumerable<string> Get()
+        public JsonDocument Get()
         {
-            return new string[] { "value1", "value2" };
+            var awsCloudClient = new AWSCloudClient();
+            return awsCloudClient.GetEverythingNeededForCloudProScene();
         }
     }
 }
