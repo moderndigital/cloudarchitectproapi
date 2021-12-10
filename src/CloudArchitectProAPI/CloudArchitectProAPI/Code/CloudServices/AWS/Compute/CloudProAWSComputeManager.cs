@@ -10,6 +10,7 @@ namespace CloudArchitectProAPI.Code.CloudServices.AWS.Compute
         public CloudProAWSEC2Manager            EC2Manager;
         public RegionEndpoint                   AWSRegion;
         public AWSCredentials                   AWSCredentials;
+        protected int                           _resourceCount; 
 
         public CloudProAWSComputeManager(CloudProAWSCloudManagerByRegion parent)
         {
@@ -21,8 +22,14 @@ namespace CloudArchitectProAPI.Code.CloudServices.AWS.Compute
             return EC2Manager.GetAllEC2Instances();
         }
 
+        public int ResourceCount
+        {
+            get { return _resourceCount; }
+        }
+
         protected void Initialize(CloudProAWSCloudManagerByRegion parent)
         {
+            _resourceCount = 0;
             Parent = parent;
             EC2Manager = new CloudProAWSEC2Manager(this);
         }

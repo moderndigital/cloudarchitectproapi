@@ -38,7 +38,14 @@ namespace CloudArchitectProAPI.Code.CloudServices.AWS
                 if (cloudMgrForRegion != null)
                 {
                     var dataForRegion = cloudMgrForRegion.GetEverything();
-                    sb.Append(dataForRegion);
+                    var stream = new System.IO.MemoryStream();
+                    var utf8Writer = new Utf8JsonWriter(stream);
+                    dataForRegion.WriteTo(utf8Writer);
+                    utf8Writer.Flush();
+                    stream.Position = 0;
+                    var streamReader = new System.IO.StreamReader(stream);
+                    var streamContents = streamReader.ReadToEnd();
+                    sb.Append(streamContents);
                 }
             }
 
