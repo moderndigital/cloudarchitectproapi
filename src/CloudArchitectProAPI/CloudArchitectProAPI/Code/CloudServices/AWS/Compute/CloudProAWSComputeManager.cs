@@ -31,6 +31,8 @@ namespace CloudArchitectProAPI.Code.CloudServices.AWS.Compute
         {
             _resourceCount = 0;
             Parent = parent;
+            AWSRegion = parent.AWSRegion;
+            AWSCredentials = parent.AWSCredentials;
             EC2Manager = new CloudProAWSEC2Manager(this);
         }
     }

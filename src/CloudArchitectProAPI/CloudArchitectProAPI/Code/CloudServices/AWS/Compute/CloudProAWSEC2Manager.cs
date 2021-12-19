@@ -1,6 +1,7 @@
 ﻿using Amazon.EC2.Model;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text.Json;
 using System.Threading;
 
@@ -48,7 +49,7 @@ namespace CloudArchitectProAPI.Code.CloudServices.AWS.Compute
 
             _instances = new List<Instance>();
             Parent = parent;
-            EC2Client = new Amazon.EC2.AmazonEC2Client(parent.AWSRegion);
+            EC2Client = new Amazon.EC2.AmazonEC2Client(parent.AWSCredentials, parent.AWSRegion);
             GetAllEC2InstancesInternal();
             
             Initialized = true;
@@ -60,13 +61,29 @@ namespace CloudArchitectProAPI.Code.CloudServices.AWS.Compute
             {
                 // copied from (my) CloudCrud...EC2...ReadList()
 
-                var response = EC2Client.DescribeInstances();
-
-                foreach (var ec2reservation in response.Reservations)
+                try
                 {
-                    foreach (var instance in ec2reservation.Instances)
+                    var response = EC2Client.DescribeInstances();
+                    foreach (var ec2reservation in response.Reservations)
                     {
-                        _instances.Add(instance);
+                        foreach (var instance in ec2reservation.Instances)
+                        {
+                            _instances.Add(instance);
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    if (e is Amazon.EC2.AmazonEC2Exception)
+                    {
+                        // eat the exception
+                        // Debug.WriteLine(exception.ToString());
+                        Debug.WriteLine("EC2 Exception for this region :" + Parent.AWSRegion.SystemName);
+                    }
+                    else
+                    {
+                        // eat the exception
+                        Debug.WriteLine("Exception for this region :" + Parent.AWSRegion.SystemName + " was \n" + e.ToString());
                     }
                 }
             }
