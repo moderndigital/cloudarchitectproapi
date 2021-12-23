@@ -12,7 +12,7 @@ namespace CloudArchitectProAPI.Code.CloudServices.AWS.Networking
             Initialize(parent);
         }
 
-        public JsonDocument GetAllVPCs()
+        public string GetAllVPCs()
         {
             return null;
         }

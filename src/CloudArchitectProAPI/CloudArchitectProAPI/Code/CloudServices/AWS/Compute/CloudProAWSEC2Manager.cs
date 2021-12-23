@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Text;
 using System.Text.Json;
 using System.Threading;
 
@@ -20,9 +21,17 @@ namespace CloudArchitectProAPI.Code.CloudServices.AWS.Compute
             Initialize(parent);
         }
 
-        public JsonDocument GetAllEC2Instances()
+        public string GetAllEC2InstanceReports()
         {
-            return JsonDocument.Parse(ResourceCount.ToString());
+            var retVal = new StringBuilder();
+
+            foreach(var instance in _instances)
+            {
+                var instanceReport = "EC2 Instance : " + instance.InstanceId + "\n";
+                retVal.Append(instanceReport);
+            }
+
+            return retVal.ToString();
         }
 
         public int ResourceCount
@@ -59,11 +68,10 @@ namespace CloudArchitectProAPI.Code.CloudServices.AWS.Compute
         {
             if (EC2Client != null)
             {
-                // copied from (my) CloudCrud...EC2...ReadList()
-
-                try
+                if (CheckIfRegionIsOk())
                 {
                     var response = EC2Client.DescribeInstances();
+
                     foreach (var ec2reservation in response.Reservations)
                     {
                         foreach (var instance in ec2reservation.Instances)
@@ -72,21 +80,54 @@ namespace CloudArchitectProAPI.Code.CloudServices.AWS.Compute
                         }
                     }
                 }
-                catch (Exception e)
+            }
+        }
+
+        /// <summary>
+        /// Checks if AWS Region is OK
+        /// </summary>
+        /// <returns>false if region is not ok</returns>
+        protected bool CheckIfRegionIsOk()
+        {
+            var retVal = false;
+
+            if (RegionNameIsOk(Parent.AWSRegion.SystemName))
+            {
+                try
                 {
-                    if (e is Amazon.EC2.AmazonEC2Exception)
-                    {
-                        // eat the exception
-                        // Debug.WriteLine(exception.ToString());
-                        Debug.WriteLine("EC2 Exception for this region :" + Parent.AWSRegion.SystemName);
-                    }
-                    else
-                    {
-                        // eat the exception
-                        Debug.WriteLine("Exception for this region :" + Parent.AWSRegion.SystemName + " was \n" + e.ToString());
-                    }
+                    // do a test API call.  This API call fails for regions that are not enabled.
+                    var regionsResponse = EC2Client.DescribeRegions();
+                    retVal = true;
+                }
+                catch
+                {
+                    // eat the exception
                 }
             }
-        } 
+
+            return retVal;
+        }
+
+        /// <summary>
+        /// Hardcodes certain region names to exclude.
+        /// </summary>
+        /// <param name="regionSystemName">AWS system name for the Region</param>
+        /// <returns>false if regionSystemName is an excluded region</returns>
+        protected bool RegionNameIsOk(string regionSystemName)
+        {
+            var retVal = true;
+
+            if (string.Equals(regionSystemName, Amazon.RegionEndpoint.APEast1.SystemName, StringComparison.InvariantCultureIgnoreCase) ||
+                string.Equals(regionSystemName, Amazon.RegionEndpoint.USGovCloudEast1.SystemName, StringComparison.InvariantCultureIgnoreCase) ||
+                string.Equals(regionSystemName, Amazon.RegionEndpoint.USGovCloudWest1.SystemName, StringComparison.InvariantCultureIgnoreCase) ||
+                string.Equals(regionSystemName, Amazon.RegionEndpoint.USIsobEast1.SystemName, StringComparison.InvariantCultureIgnoreCase) ||
+                string.Equals(regionSystemName, Amazon.RegionEndpoint.USIsoEast1.SystemName, StringComparison.InvariantCultureIgnoreCase) ||
+                string.Equals(regionSystemName, Amazon.RegionEndpoint.USIsoWest1.SystemName, StringComparison.InvariantCultureIgnoreCase))
+            {
+                retVal = false;
+            }
+
+            return retVal;
+        }
     }
 }

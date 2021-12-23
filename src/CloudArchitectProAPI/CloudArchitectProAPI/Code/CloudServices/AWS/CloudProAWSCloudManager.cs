@@ -20,14 +20,14 @@ namespace CloudArchitectProAPI.Code.CloudServices.AWS
             Initialize();
         }
 
-        public JsonDocument GetEverything()
+        public string GetEverything()
         {
             if (!IsInitialized)
             {
                 return null;
             }
 
-            var sb = new StringBuilder();
+            var retVal = new StringBuilder();
 
             var keys = AWSCloudManagersByRegion.Keys;
                 
@@ -38,18 +38,11 @@ namespace CloudArchitectProAPI.Code.CloudServices.AWS
                 if (cloudMgrForRegion != null)
                 {
                     var dataForRegion = cloudMgrForRegion.GetEverything();
-                    var stream = new System.IO.MemoryStream();
-                    var utf8Writer = new Utf8JsonWriter(stream);
-                    dataForRegion.WriteTo(utf8Writer);
-                    utf8Writer.Flush();
-                    stream.Position = 0;
-                    var streamReader = new System.IO.StreamReader(stream);
-                    var streamContents = streamReader.ReadToEnd();
-                    sb.Append(streamContents);
+                    retVal.Append(dataForRegion);
                 }
             }
 
-            return JsonDocument.Parse(sb.ToString());
+            return retVal.ToString();
         }
 
         protected void Initialize()

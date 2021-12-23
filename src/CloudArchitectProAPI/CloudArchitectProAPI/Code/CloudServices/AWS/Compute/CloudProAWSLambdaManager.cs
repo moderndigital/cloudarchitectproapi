@@ -1,33 +1,41 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Text;
 using System.Text.Json;
 
 namespace CloudArchitectProAPI.Code.CloudServices.AWS.Compute
 {
     public class CloudProAWSLambdaManager
     {
-        public CloudProAWSComputeManager Parent;
-        public Amazon.Lambda.AmazonLambdaClient LambdaClient;
-        protected int _resourceCount;
-        protected List<Amazon.Lambda.Model.FunctionConfiguration> _instances;
-        public bool Initialized;
+        public CloudProAWSComputeManager                            Parent;
+        public Amazon.Lambda.AmazonLambdaClient                     LambdaClient;
+        protected int                                               _resourceCount;
+        protected List<Amazon.Lambda.Model.FunctionConfiguration>   _instances;
+        public bool                                                 Initialized;
 
         public CloudProAWSLambdaManager(CloudProAWSComputeManager parent)
         {
             Initialize(parent);
         }
 
-        public JsonDocument GetAllLambdaInstances()
+        public string GetAllLambdaInstanceReports()
         {
-            return JsonDocument.Parse(ResourceCount.ToString());
+            var retVal = new StringBuilder();
+
+            foreach (var instance in _instances)
+            {
+                var instanceReport = "Lambda Function : " + instance.FunctionName + "\n";
+                retVal.Append(instanceReport);
+            }
+
+            return retVal.ToString();
         }
 
         public int ResourceCount
         {
             get
             {
-
                 if (!Initialized)
                 {
                     return 0;
@@ -58,9 +66,7 @@ namespace CloudArchitectProAPI.Code.CloudServices.AWS.Compute
         {
             if (LambdaClient != null)
             {
-                // copied from (my) CloudCrud...Lambda...ReadList()
-
-                try
+                if (RegionNameIsOk(Parent.AWSRegion.SystemName))
                 {
                     var response = LambdaClient.ListFunctions();
                     foreach (var functionConfiguration in response.Functions)
@@ -68,21 +74,35 @@ namespace CloudArchitectProAPI.Code.CloudServices.AWS.Compute
                         _instances.Add(functionConfiguration);
                     }
                 }
-                catch (Exception e)
-                {
-                    if (e is Amazon.Lambda.AmazonLambdaException)
-                    {
-                        // eat the exception
-                        // Debug.WriteLine(exception.ToString());
-                        Debug.WriteLine("Lambda Exception for this region :" + Parent.AWSRegion.SystemName);
-                    }
-                    else
-                    {
-                        // eat the exception
-                        Debug.WriteLine("Exception for this region :" + Parent.AWSRegion.SystemName + " was \n" + e.ToString());
-                    }
-                }
             }
+        }
+
+        /// <summary>
+        /// Hardcodes certain region names to exclude.
+        /// </summary>
+        /// <param name="regionSystemName">AWS system name for the Region</param>
+        /// <returns>false if regionSystemName is an excluded region</returns>
+        protected bool RegionNameIsOk(string regionSystemName)
+        {
+            var retVal = true;
+
+            if (string.Equals(regionSystemName, Amazon.RegionEndpoint.APEast1.SystemName, StringComparison.InvariantCultureIgnoreCase) ||
+                string.Equals(regionSystemName, Amazon.RegionEndpoint.USGovCloudEast1.SystemName, StringComparison.InvariantCultureIgnoreCase) ||
+                string.Equals(regionSystemName, Amazon.RegionEndpoint.USGovCloudWest1.SystemName, StringComparison.InvariantCultureIgnoreCase) ||
+                string.Equals(regionSystemName, Amazon.RegionEndpoint.USIsobEast1.SystemName, StringComparison.InvariantCultureIgnoreCase) ||
+                string.Equals(regionSystemName, Amazon.RegionEndpoint.USIsoEast1.SystemName, StringComparison.InvariantCultureIgnoreCase) ||
+                string.Equals(regionSystemName, Amazon.RegionEndpoint.USIsoWest1.SystemName, StringComparison.InvariantCultureIgnoreCase) ||
+                string.Equals(regionSystemName, Amazon.RegionEndpoint.AFSouth1.SystemName, StringComparison.InvariantCultureIgnoreCase) ||
+                string.Equals(regionSystemName, Amazon.RegionEndpoint.APSoutheast3.SystemName, StringComparison.InvariantCultureIgnoreCase) ||
+                string.Equals(regionSystemName, Amazon.RegionEndpoint.EUSouth1.SystemName, StringComparison.InvariantCultureIgnoreCase) ||
+                string.Equals(regionSystemName, Amazon.RegionEndpoint.MESouth1.SystemName, StringComparison.InvariantCultureIgnoreCase) ||
+                string.Equals(regionSystemName, Amazon.RegionEndpoint.CNNorth1.SystemName, StringComparison.InvariantCultureIgnoreCase) ||
+                string.Equals(regionSystemName, Amazon.RegionEndpoint.CNNorthWest1.SystemName, StringComparison.InvariantCultureIgnoreCase))
+            {
+                retVal = false;
+            }
+
+            return retVal;
         }
     }
 }

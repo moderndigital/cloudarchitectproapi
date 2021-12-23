@@ -16,7 +16,7 @@ namespace CloudArchitectProAPI.Code.CloudServices.AWS.Networking
             Initialize(parent);
         }
 
-        public JsonDocument GetEverything()
+        public string GetEverything()
         {
             return null;
         }

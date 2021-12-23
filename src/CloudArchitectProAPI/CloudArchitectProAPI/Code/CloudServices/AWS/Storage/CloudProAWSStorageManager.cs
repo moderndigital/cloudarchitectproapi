@@ -16,7 +16,7 @@ namespace CloudArchitectProAPI.Code.CloudServices.AWS.Storage
             Initialize(parent);
         }
 
-        public JsonDocument GetEverything()
+        public string GetEverything()
         {
             return S3Manager.GetAllS3Buckets();
         }

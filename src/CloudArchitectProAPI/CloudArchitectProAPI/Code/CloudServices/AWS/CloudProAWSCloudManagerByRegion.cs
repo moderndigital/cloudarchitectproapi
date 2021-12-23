@@ -38,7 +38,7 @@ namespace CloudArchitectProAPI.Code.CloudServices.AWS
             IsInitialized = true;
         }
 
-        public JsonDocument GetEverything()
+        public string GetEverything()
         {
             if (!IsInitialized)
             {

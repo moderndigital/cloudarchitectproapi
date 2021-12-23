@@ -12,7 +12,7 @@ namespace CloudArchitectProAPI.CodeCloudClients
             Init();
         }
 
-        public JsonDocument GetEverythingNeededForCloudProScene()
+        public string GetEverythingNeededForCloudProScene()
         {
             return cloudMgr.GetEverything();
         }
